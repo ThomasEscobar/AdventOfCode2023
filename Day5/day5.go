@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -23,6 +24,24 @@ func main() {
 }
 
 func solvePart1(lines []string) int {
+	stacksOfCratesLines := make([]string, 0)
+	instructions := make([]string, 0)
+	stacksOfCrates := make(map[int]Stack)
+
+	for _, line := range lines {
+		if line != "" && !strings.Contains(line, "move") {
+			stacksOfCratesLines = append(stacksOfCratesLines, line)
+		} else {
+			instructions = append(instructions, line)
+		}
+	}
+
+	for i, char := range stacksOfCratesLines[len(stacksOfCratesLines)-1] {
+		if char != ' ' {
+			var 
+		}
+	}
+
 	return 0
 }
 
@@ -47,4 +66,25 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+type Stack []string
+
+func (s *Stack) IsEmpty() bool {
+	return len(*s) == 0
+}
+
+func (s *Stack) Push(str string) {
+	*s = append(*s, str)
+}
+
+func (s *Stack) Pop() (string, bool) {
+	if s.IsEmpty() {
+		return "", false
+	} else {
+		indexOfTopElement := len(*s) - 1
+		topElement := (*s)[indexOfTopElement]
+		*s = (*s)[:indexOfTopElement]
+		return topElement, true
+	}
 }
