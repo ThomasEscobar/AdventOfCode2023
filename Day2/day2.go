@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
+	"regexp"
+	"strconv"
 )
 
 func main() {
@@ -24,90 +25,56 @@ func main() {
 }
 
 func solvePart1(lines []string) int {
-	score := 0
+	var sum int
+	const limitRed, limitGreen, limitBlue = 12, 13, 14
 
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		oppPlay := translateEncryptedMove(fields[0])
-		myPlay := translateEncryptedMove(fields[1])
-		score += resolveRockPaperScissorsRound(oppPlay, myPlay)
+	// Game ID is idx+1, no need to read again
+	for idx, line := range lines {
+		// Get red max
+		maxRed := findColorMaximum(line, "red")
+		// Get green max
+		maxGreen := findColorMaximum(line, "green")
+		// Get blue max
+		maxBlue := findColorMaximum(line, "blue")
+
+		// If the maximum for each color is less than the respective limit, game is valid, add ID to sum
+		if maxRed <= limitRed && maxGreen <= limitGreen && maxBlue <= limitBlue {
+			sum += idx + 1
+		}
 	}
 
-	return score
+	return sum
 }
 
 func solvePart2(lines []string) int {
-	score := 0
-
+	var sum int
 	for _, line := range lines {
-		fields := strings.Fields(line)
-		oppPlay := translateEncryptedMove(fields[0])
-		targetOutcome := fields[1]
-		myPlay := choosePlayToGetTargetOutcome(oppPlay, targetOutcome)
-		score += resolveRockPaperScissorsRound(oppPlay, myPlay)
+		// Get red max
+		maxRed := findColorMaximum(line, "red")
+		// Get green max
+		maxGreen := findColorMaximum(line, "green")
+		// Get blue max
+		maxBlue := findColorMaximum(line, "blue")
+		power := maxRed * maxGreen * maxBlue
+		sum += power
 	}
 
-	return score
+	return sum
 }
 
-func choosePlayToGetTargetOutcome(oppPlay int, targetOutcome string) int {
-	myPlay := 0
-
-	switch targetOutcome {
-	case "X":
-		// Loose
-		myPlay = oppPlay - 1
-		if myPlay == 0 {
-			myPlay = 3
+func findColorMaximum(line string, color string) int {
+	var max int
+	reColorCount := regexp.MustCompile(fmt.Sprintf("(\\d+) %s", color))
+	matches := reColorCount.FindAllStringSubmatch(line, -1)
+	for _, match := range matches {
+		// For each match, item 0 contains the full matched pattern, item 1 contains the captured group
+		count, _ := strconv.Atoi(match[1])
+		if count > max {
+			max = count
 		}
-	case "Y":
-		// Draw
-		myPlay = oppPlay
-	case "Z":
-		// Win
-		myPlay = oppPlay + 1
-		if myPlay == 4 {
-			myPlay = 1
-		}
-	default:
-		log.Fatalf("The outcome %s is unknown and couldn't be processed", targetOutcome)
 	}
 
-	return myPlay
-}
-
-func resolveRockPaperScissorsRound(oppPlay, myPlay int) int {
-	roundScore := myPlay
-
-	if oppPlay == myPlay {
-		// Draw
-		roundScore += 3
-	} else if myPlay == oppPlay+1 || myPlay == 1 && oppPlay == 3 {
-		// Win
-		roundScore += 6
-	} else {
-		// Loose
-	}
-
-	return roundScore
-}
-
-func translateEncryptedMove(letter string) int {
-	// Converting to score value instead to save a step later
-	switch letter {
-	case "A", "X":
-		//return "rock"
-		return 1
-	case "B", "Y":
-		//return "paper"
-		return 2
-	case "C", "Z":
-		//return "scissors"
-		return 3
-	default:
-		log.Fatalf("The move %s is unknown and couldn't be processed", letter)
-		return -1
-	}
+	return max
 }
 
 // readLines reads a whole file into memory
